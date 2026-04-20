@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Take MCQ Test - SmartStudy Hub</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar glass">
+        <a href="/" class="logo"> SmartStudy Hub</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/browse">Browse</a>
+            <a href="/upload">Upload</a>
+            <a href="/requests">Requests</a>
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card glass">
+            <h2 class="card-title"><%= test.title %></h2>
+            <p><strong>Material:</strong> <%= test.material_title %></p>
+            <% if (test.description) { %>
+                <p><strong>Description:</strong> <%= test.description %></p>
+            <% } %>
+            
+            <form action="/submit-mcq/<%= test.id %>" method="POST">
+                <% questions.forEach((q, index) => { %>
+                    <div class="question-card" style="margin: 30px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: rgba(255,255,255,0.05);">
+                        <h4 style="margin-bottom: 20px; font-size: 16px; color: #222;">Question <%= index + 1 %>: <%= q.question %></h4>
+                        
+                        <div class="options" style="margin-left: 15px; display: flex; flex-direction: column; gap: 15px;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="radio" name="q<%= q.id %>" value="A" required style="cursor: pointer; width: 18px; height: 18px;">
+                                <span style="color: #333; font-size: 15px;"><%= q.option_a %></span>
+                            </label>
+                            
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="radio" name="q<%= q.id %>" value="B" style="cursor: pointer; width: 18px; height: 18px;">
+                                <span style="color: #333; font-size: 15px;"><%= q.option_b %></span>
+                            </label>
+                            
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="radio" name="q<%= q.id %>" value="C" style="cursor: pointer; width: 18px; height: 18px;">
+                                <span style="color: #333; font-size: 15px;"><%= q.option_c %></span>
+                            </label>
+                            
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="radio" name="q<%= q.id %>" value="D" style="cursor: pointer; width: 18px; height: 18px;">
+                                <span style="color: #333; font-size: 15px;"><%= q.option_d %></span>
+                            </label>
+                        </div>
+                    </div>
+                <% }) %>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="font-size: 18px; padding: 12px 24px;">Submit Test</button>
+                    <a href="/browse" class="btn btn-secondary" style="margin-left: 10px;">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource Requests - SmartStudy Hub</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar glass">
+        <a href="/" class="logo"> SmartStudy Hub</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/browse">Browse</a>
+            <a href="/upload">Upload</a>
+            <a href="/requests">Requests</a>
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="grid">
+            <!-- Request Form -->
+            <div class="card glass">
+                <h3 class="card-title"> Request a Resource</h3>
+                <form method="post">
+                    <div class="form-group">
+                        <label>Resource Title</label>
+                        <input type="text" name="title" placeholder="What are you looking for?" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <input type="text" name="subject" placeholder="e.g. Mathematics" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Semester (1-8)</label>
+                        <input type="number" name="semester" placeholder="e.g. 4" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Submit Request </button>
+                </form>
+            </div>
+            
+            <!-- Pending Requests -->
+            <div class="card glass">
+                <h3 class="card-title"> Pending Requests</h3>
+                <% if (data && data.length > 0) { %>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <% data.forEach(r => { %>
+                        <div class="request-item glass">
+                            <div>
+                                <strong style="color: #222; font-size: 16px;"><%= r.title %></strong>
+                                <div class="meta" style="margin-top: 5px;"> <%= r.subject %> | Semester <%= r.semester %></div>
+                                <div class="meta" style="font-weight: 500; margin-top: 5px;">Requested by: <%= r.student_name %></div>
+                            </div>
+                            
+                            <% if (r.suggestions && r.suggestions.length > 0) { %>
+                                <div style="margin-top: 10px; padding: 10px; background: rgba(100, 149, 237, 0.1); border-left: 3px solid #4a90e2; border-radius: 4px; grid-column: 1 / -1;">
+                                    <strong style="color: #4a90e2; font-size: 13px;">💡 AI Suggestions: Similar existing documents</strong>
+                                    <ul style="list-style: none; padding-left: 0; margin-top: 5px; margin-bottom: 0;">
+                                    <% r.suggestions.forEach(s => { %>
+                                        <li style="margin-bottom: 3px; font-size: 13px;">
+                                            ➤ <a href="/download/<%= s.id %>" style="color: #333; text-decoration: none;"><b><%= s.title %></b> — <i>Download Instead</i></a>
+                                        </li>
+                                    <% }) %>
+                                    </ul>
+                                </div>
+                            <% } %>
+
+                            <div class="actions" style="margin-top: 10px;">
+                                <% if (user && user.role === 'teacher') { %>
+                                    <a href="/upload?request_id=<%= r.id %>&title=<%= encodeURIComponent(r.title) %>&subject=<%= encodeURIComponent(r.subject) %>&semester=<%= r.semester %>" class="btn btn-small" style="background: linear-gradient(135deg, #FF6B6B, #fa5252); color: white; display: inline-block; text-align: center; box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);"> Fulfill</a>
+                                <% } else { %>
+                                    <span style="background: rgba(255, 165, 2, 0.2); color: #ffa502; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid rgba(255, 165, 2, 0.4);"> Pending</span>
+                                <% } %>
+                            </div>
+                        </div>
+                    <% }) %>
+                    </div>
+                <% } else { %>
+                    <p style="text-align: center; color: #555;">No pending requests. Check back later!</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

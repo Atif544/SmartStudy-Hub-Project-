@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Resource - SmartStudy Hub</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar glass">
+        <a href="/" class="logo"> SmartStudy Hub</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/browse">Browse</a>
+            <a href="/upload">Upload</a>
+            <a href="/requests">Requests</a>
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="form-card glass">
+            <h2> Upload Study Resource</h2>
+            <div class="alert" style="background: rgba(81, 207, 102, 0.2); border: 1px solid rgba(81, 207, 102, 0.4); text-align: center; color: #111;">
+                 Earn <strong style="color: #2b8a3e;">10 points</strong> for each upload!
+            </div>
+            
+            <form method="post" action="/upload" enctype="multipart/form-data">
+                <% if (typeof query !== 'undefined' && query.request_id) { %>
+                    <input type="hidden" name="request_id" value="<%= query.request_id %>">
+                    <div class="alert" style="background: rgba(100, 149, 237, 0.2); border: 1px solid rgba(100, 149, 237, 0.5); text-align: center; color: #111; margin-bottom: 15px; border-radius: 8px; padding: 10px;">
+                         You are fulfilling a request: <strong style="color: #4a90e2;"><%= query.title %></strong>
+                    </div>
+                <% } %>
+                <div class="form-group">
+                    <label>Resource Title</label>
+                    <input type="text" name="title" placeholder="Enter resource title" value="<%= (typeof query !== 'undefined' && query.title) ? query.title : '' %>" required>
+                </div>
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" name="subject" placeholder="Enter subject name" value="<%= (typeof query !== 'undefined' && query.subject) ? query.subject : '' %>" required>
+                </div>
+                <div class="form-group">
+                    <label>Semester (1-8)</label>
+                    <input type="number" name="semester" placeholder="Enter semester number" value="<%= (typeof query !== 'undefined' && query.semester) ? query.semester : '' %>" required>
+                </div>
+                <div class="form-group">
+                    <label>File Attachment</label>
+                    <input type="file" name="file" required style="border: 2px dashed rgba(255,255,255,0.6); padding: 20px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.2);">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 15px;">Upload Resource </button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const titleInput = document.querySelector('input[name="title"]');
+        const subjectInput = document.querySelector('input[name="subject"]');
+        let duplicateChecked = false;
+        
+        async function checkDuplicate() {
+            if (duplicateChecked) return;
+            const title = titleInput.value.trim();
+            const subject = subjectInput.value.trim();
+            
+            if (title.length > 2 && subject.length > 2) {
+                try {
+                    const res = await fetch(`/api/check-duplicate?title=${encodeURIComponent(title)}&subject=${encodeURIComponent(subject)}`);
+                    const data = await res.json();
+                    
+                    if (data.exists) {
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert';
+                        alertDiv.style.marginTop = '10px';
+                        alertDiv.style.background = 'rgba(255, 107, 107, 0.15)';
+                        alertDiv.style.border = '1px solid #ff6b6b';
+                        alertDiv.style.color = '#c92a2a';
+                        alertDiv.style.borderRadius = '8px';
+                        alertDiv.style.padding = '10px';
+                        alertDiv.style.fontSize = '14px';
+                        alertDiv.innerHTML = '⚠️ <strong>AI Detection:</strong> A similar document already exists in the system. Upload anyway?';
+                        
+                        subjectInput.parentNode.appendChild(alertDiv);
+                        duplicateChecked = true;
+                    }
+                } catch(e) {
+                    console.error('Error checking duplicate:', e);
+                }
+            }
+        }
+
+        titleInput.addEventListener('blur', checkDuplicate);
+        subjectInput.addEventListener('blur', checkDuplicate);
+    </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - SmartStudy Hub</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar glass">
+        <a href="/" class="logo"> SmartStudy Hub</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/browse">Browse</a>
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card glass">
+            <h2 class="card-title">� Leaderboard - Top Contributors</h2>
+            <div class="leaderboard" style="display: flex; flex-direction: column; gap: 10px;">
+                <% if (data && data.length > 0) { %>
+                    <% data.forEach((u, i) => { %>
+                        <div class="leaderboard-item glass <%= i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '' %>">
+                            <strong style="color: #111; font-size: 18px;"><%= i+1 %>. <%= u.name %></strong>
+                            <span style="color: #444; font-weight: 500;">
+                                <%= u.points %> points <span style="margin: 0 5px;"></span> <%= u.streak %> day streak
+                            </span>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <p style="text-align: center; color: #555;">No data yet. Start contributing!</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

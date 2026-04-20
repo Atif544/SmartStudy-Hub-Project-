@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SmartStudy Hub</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar glass">
+        <a href="/" class="logo"> SmartStudy Hub</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/browse">Browse</a>
+            <a href="/upload">Upload</a>
+            <a href="/requests">Requests</a>
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 style="text-align: left; margin-bottom: 30px; font-size: 32px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">Welcome back, <%= user?.name || '' %>! </h2>
+        
+        <!-- Notification Panel -->
+        <% if (typeof notifications !== 'undefined' && notifications.length > 0) { %>
+            <div class="card glass" style="margin-bottom: 25px; border-left: 5px solid #ff6b6b; box-shadow: 0 8px 15px rgba(255, 107, 107, 0.2);">
+                <h3 class="card-title" style="color: #ff6b6b;">🔔 Intelligent Notifications</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                <% notifications.forEach(n => { %>
+                    <div style="padding: 12px; font-weight: 500; background: <%= n.is_read ? 'rgba(255,255,255,0.1)' : 'rgba(255,107,107,0.2)' %>; border-radius: 8px; border: 1px solid <%= n.is_read ? 'rgba(255,255,255,0.2)' : 'rgba(255,107,107,0.4)' %>;">
+                        <%= n.message %> 
+                        <span style="color: #888; font-size: 12px; float: right; font-weight: normal;"><%= new Date(n.created_at).toLocaleDateString() %></span>
+                    </div>
+                <% }) %>
+                </div>
+            </div>
+        <% } %>
+        
+        <!-- Stats Cards -->
+        <div class="stats">
+            <div class="stat-card glass">
+                <h3> Your Current Points</h3>
+                <div class="value"><%= leaders.find(l => l.name === user?.name)?.points || 0 %></div>
+            </div>
+            <div class="stat-card glass">
+                <h3> Study Streak Level</h3>
+                <div class="value"><%= leaders.find(l => l.name === user?.name)?.streak || 0 %> days</div>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <!-- Smart Recommendations -->
+            <div class="card glass">
+                <h3 class="card-title"> Smart Recommendations For You</h3>
+                <% if (recommend && recommend.length > 0) { %>
+                    <% recommend.forEach(r => { %>
+                        <div class="resource-item">
+                            <div>
+                                � <strong style="color: #333;"><%= r.title %></strong> 
+                                <div class="meta"><%= r.subject %></div>
+                            </div>
+                            <div style="display: flex; gap: 5px;">
+                                <button class="btn-small btn-like" data-id="<%= r.id %>" style="background: rgba(100, 149, 237, 0.2); color: #4a90e2; border: 1px solid rgba(100, 149, 237, 0.4); cursor: pointer;">
+                                    👍 <span class="like-count"><%= r.likes || 0 %></span>
+                                </button>
+                                <a href="/download/<%= r.id %>" class="btn-small">Download</a>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <p style="color: #555;">No recommendations yet. Download some materials to get personalized suggestions!</p>
+                <% } %>
+            </div>
+            
+            <!-- Leadboard Preview -->
+            <div class="card glass">
+                <h3 class="card-title">� Top Contributors</h3>
+                <% leaders.forEach((l, index) => { %>
+                    <div class="leaderboard-item">
+                        <strong style="color: #333;"><%= index+1 %>. <%= l.name %></strong>
+                        <span style="color: #555;"><%= l.points %> pts  <%= l.streak %> days</span>
+                    </div>
+                <% }) %>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="/leaderboard" class="btn-small" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">View Full Leaderboard →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Materials -->
+        <div class="card glass">
+            <h3 class="card-title"> Most Popular Materials Hub</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                <% top.forEach(t => { %>
+                    <div class="resource-item">
+                        <div>
+                            � <strong style="color: #333;"><%= t.title %></strong>
+                            <div class="meta">Downloads: <b><%= t.downloads %></b></div>
+                            <% if(t.verified) { %><span class="verified-badge">✅ Verified</span><% } %>
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="btn-small btn-like" data-id="<%= t.id %>" style="background: rgba(100, 149, 237, 0.2); color: #4a90e2; border: 1px solid rgba(100, 149, 237, 0.4); cursor: pointer;">
+                                👍 <span class="like-count"><%= t.likes || 0 %></span>
+                            </button>
+                            <a href="/download/<%= t.id %>" class="btn-small">Download</a>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </div>
+    <script>
+    document.querySelectorAll('.btn-like').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const id = this.getAttribute('data-id');
+            try {
+                const res = await fetch(`/like/${id}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    this.querySelector('.like-count').innerText = data.newLikes;
+                    this.style.background = 'rgba(100, 149, 237, 0.6)';
+                    this.style.color = '#fff';
+                    alert("+5 Reputation points awarded to the uploader!");
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        });
+    });
+    </script>
+</body>
+</html>

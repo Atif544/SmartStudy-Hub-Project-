@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCQ Test Results - SmartStudy Hub</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar glass">
+        <a href="/" class="logo"> SmartStudy Hub</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/browse">Browse</a>
+            <a href="/upload">Upload</a>
+            <a href="/requests">Requests</a>
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card glass">
+            <h2 class="card-title">Test Results</h2>
+            
+            <div class="results-summary" style="text-align: center; margin: 30px 0;">
+                <div style="font-size: 48px; margin-bottom: 10px;">
+                    <% if (score / total >= 0.8) { %>
+                        🎉
+                    <% } else if (score / total >= 0.6) { %>
+                        👍
+                    <% } else { %>
+                        📚
+                    <% } %>
+                </div>
+                
+                <h3 style="color: <%= score / total >= 0.8 ? '#28a745' : score / total >= 0.6 ? '#ffc107' : '#dc3545' %>;">
+                    Score: <%= score %> / <%= total %>
+                </h3>
+                
+                <p style="font-size: 18px; margin: 10px 0;">
+                    Percentage: <%= Math.round((score / total) * 100) %>%
+                </p>
+                
+                <p style="color: #666;">
+                    Points Earned: +<%= pointsEarned %> reputation points
+                </p>
+            </div>
+            
+            <div class="performance-message" style="text-align: center; margin-bottom: 30px;">
+                <% if (score / total >= 0.8) { %>
+                    <p style="color: #28a745; font-size: 18px;">Excellent work! You've mastered this topic! 🎉</p>
+                <% } else if (score / total >= 0.6) { %>
+                    <p style="color: #ffc107; font-size: 18px;">Good job! Keep practicing to improve further. 👍</p>
+                <% } else { %>
+                    <p style="color: #dc3545; font-size: 18px;">Keep studying! Review the material and try again. 📚</p>
+                <% } %>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="/browse" class="btn btn-primary">Back to Browse</a>
+                <a href="/dashboard" class="btn btn-secondary" style="margin-left: 10px;">Go to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

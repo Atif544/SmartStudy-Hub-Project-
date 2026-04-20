@@ -1,0 +1,17 @@
+{
+  "name": "smartstudy-hub",
+  "version": "1.0.0",
+  "description": "Gamified Classroom Resource Sharing System",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "ejs": "^3.1.10",
+    "express": "^4.22.1",
+    "express-session": "^1.19.0",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.20.0"
+  }
+}

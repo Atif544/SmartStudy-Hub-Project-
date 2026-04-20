@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Resources - SmartStudy Hub</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar glass">
+        <a href="/" class="logo"> SmartStudy Hub</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/browse">Browse</a>
+            <a href="/upload">Upload</a>
+            <a href="/requests">Requests</a>
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card glass">
+            <h2 class="card-title"> All Study Materials</h2>
+            
+            <!-- Search Form -->
+            <div class="search-form" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                <form method="GET" action="/browse" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" name="search" placeholder="Search by title or subject..." value="<%= search || '' %>" style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    
+                    <select name="semester" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">All Semesters</option>
+                        <% for(let i=1; i<=8; i++) { %>
+                            <option value="<%= i %>" <%= semester == i ? 'selected' : '' %>>Semester <%= i %></option>
+                        <% } %>
+                    </select>
+                    
+                    <input type="text" name="subject" placeholder="Filter by subject..." value="<%= subject || '' %>" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 16px;">Search</button>
+                    <a href="/browse" class="btn btn-secondary" style="padding: 8px 16px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px;">Clear</a>
+                </form>
+            </div>
+            
+            <% if (data && data.length > 0) { %>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                <% data.forEach(m => { %>
+                    <div class="resource-item glass">
+                        <div style="flex: 1;">
+                            <strong style="color: #222; font-size: 18px;"><%= m.title %></strong>
+                            <% if (m.verified) { %>
+                                <span class="verified-badge">✅ Teacher Verified</span>
+                            <% } %>
+                            <div class="meta" style="margin-top: 8px;">
+                                <span> <%= m.subject %></span> | 
+                                <span> Semester <%= m.semester %></span> | 
+                                <span>⬇️ <%= m.downloads %> downloads</span>
+                                <% if (m.mcq_count > 0) { %>
+                                    <span> | 📝 <%= m.mcq_count %> MCQ Test<%= m.mcq_count > 1 ? 's' : '' %> available</span>
+                                <% } %>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn btn-small btn-like" data-id="<%= m.id %>" style="background: rgba(100, 149, 237, 0.2); color: #4a90e2; border: 1px solid rgba(100, 149, 237, 0.4); cursor: pointer;">
+                                👍 Like <span class="like-count"><%= m.likes || 0 %></span>
+                            </button>
+                            <a href="/download/<%= m.id %>" class="btn btn-small" style="background: linear-gradient(135deg, #339af0, #1c7ed6); color: white;"> Download</a>
+                            <% if (role === 'teacher' && !m.verified) { %>
+                                <a href="/verify/<%= m.id %>" class="btn btn-small verify" style="background: linear-gradient(135deg, #51cf66, #2b8a3e); color: white;">✅ Verify</a>
+                            <% } %>
+                            <% if (role === 'teacher') { %>
+                                <a href="/create-mcq/<%= m.id %>" class="btn btn-small" style="background: linear-gradient(135deg, #ff6b6b, #ee5a52); color: white;">📝 Create MCQ</a>
+                            <% } %>
+                            <% if (m.mcq_count > 0) { %>
+                                <a href="/material-mcqs/<%= m.id %>" class="btn btn-small" style="background: linear-gradient(135deg, #9c88ff, #6c5ce7); color: white;">📚 Take MCQ</a>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }) %>
+                </div>
+            <% } else { %>
+                <div style="padding: 30px; text-align: center;">
+                    <p style="color: #444; font-size: 16px;">No resources available.</p>
+                    <a href="/upload" class="btn btn-primary mt-4">Upload the first resource! </a>
+                </div>
+            <% } %>
+        </div>
+    </div>
+    <script>
+    document.querySelectorAll('.btn-like').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const id = this.getAttribute('data-id');
+            try {
+                const res = await fetch(`/like/${id}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    this.querySelector('.like-count').innerText = data.newLikes;
+                    this.style.background = 'rgba(100, 149, 237, 0.6)';
+                    this.style.color = '#fff';
+                    alert("+5 Reputation points awarded to the uploader!");
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        });
+    });
+    </script>
+</body>
+</html>

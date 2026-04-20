@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCQ Tests for <%= material.title %> - SmartStudy Hub</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar glass">
+        <a href="/" class="logo"> SmartStudy Hub</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/browse">Browse</a>
+            <a href="/upload">Upload</a>
+            <a href="/requests">Requests</a>
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card glass">
+            <h2 class="card-title">MCQ Tests for "<%= material.title %>"</h2>
+            <p><strong>Subject:</strong> <%= material.subject %> | <strong>Semester:</strong> <%= material.semester %></p>
+            
+            <% if (role === 'teacher') { %>
+                <div style="margin-bottom: 20px;">
+                    <a href="/create-mcq/<%= material.id %>" class="btn btn-primary">Create New MCQ Test</a>
+                </div>
+            <% } %>
+            
+            <% if (mcqs && mcqs.length > 0) { %>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                <% mcqs.forEach(mcq => { %>
+                    <div class="mcq-item glass" style="padding: 15px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="margin: 0; color: #222;"><%= mcq.title %></h3>
+                                <% if (mcq.description) { %>
+                                    <p style="margin: 5px 0; color: #666;"><%= mcq.description %></p>
+                                <% } %>
+                                <div class="meta" style="font-size: 14px; color: #888;">
+                                    <span>📝 <%= mcq.question_count %> questions</span> | 
+                                    <span>Created: <%= new Date(mcq.created_at).toLocaleDateString() %></span>
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/take-mcq/<%= mcq.id %>" class="btn btn-primary">Take Test</a>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+                </div>
+            <% } else { %>
+                <div style="padding: 30px; text-align: center;">
+                    <p style="color: #444; font-size: 16px;">No MCQ tests available for this material yet.</p>
+                    <% if (role === 'teacher') { %>
+                        <a href="/create-mcq/<%= material.id %>" class="btn btn-primary mt-4">Create the first MCQ test!</a>
+                    <% } %>
+                </div>
+            <% } %>
+            
+            <div style="margin-top: 20px; text-align: center;">
+                <a href="/browse" class="btn btn-secondary">Back to Browse</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
