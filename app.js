@@ -1,4 +1,5 @@
 const express = require('express');
+require('dotenv').config();
 const mysql = require('mysql2');
 const session = require('express-session');
 const multer = require('multer');
@@ -21,10 +22,10 @@ app.set('views', './views');
 
 // Database Connection
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'Atif',
-    password: 'arpita',
-    database: 'classroom_system'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
 });
 
 db.connect((err) => {
