@@ -5,6 +5,7 @@ const session = require('express-session');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 
@@ -84,6 +85,11 @@ db.on('error', (err) => {
 });
 
 // File Upload Configuration
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'uploads/'),
     filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
@@ -585,15 +591,12 @@ app.post('/submit-mcq/:testId', (req, res) => {
 // Start Server
 const PORT = process.env.PORT || 3000;
 
-// Auto-initialize database if AUTO_INIT_DB is enabled (useful for Railway)
 const AUTO_INIT_DB = process.env.AUTO_INIT_DB === 'true';
 
 if (AUTO_INIT_DB) {
     console.log('🔄 AUTO_INIT_DB enabled - will initialize database on startup');
-    const fs = require('fs');
-    const pathModule = require('path');
     
-    const schemaPath = pathModule.join(__dirname, 'database.sql');
+    const schemaPath = path.join(__dirname, 'database.sql');
     if (fs.existsSync(schemaPath)) {
         setTimeout(() => {
             const schema = fs.readFileSync(schemaPath, 'utf8');
