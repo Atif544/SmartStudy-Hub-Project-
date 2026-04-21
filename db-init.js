@@ -9,8 +9,8 @@ const path = require('path');
 
 const db = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
+    user: process.env.DB_USER || 'Atif',
+    password: process.env.DB_PASSWORD || 'arptita',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0

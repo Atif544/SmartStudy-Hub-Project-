@@ -42,8 +42,8 @@ if (connectionUri) {
     db = mysql.createPool({
         ...dbOptions,
         host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
-        user: process.env.DB_USER || process.env.MYSQLUSER || 'root',
-        password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '',
+        user: process.env.DB_USER || process.env.MYSQLUSER || 'Atif',
+        password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || 'arpita',
         database: process.env.DB_NAME || process.env.MYSQLDATABASE || 'classroom_system',
         port: process.env.DB_PORT || process.env.MYSQLPORT || 3306
     });
