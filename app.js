@@ -12,7 +12,7 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(session({
-    secret: 'secret123',
+    secret: process.env.SESSION_SECRET || 'secret123',
     resave: false,
     saveUninitialized: true
 }));
@@ -512,4 +512,5 @@ app.post('/submit-mcq/:testId', (req, res) => {
 });
 
 // Start Server
-app.listen(3000, () => console.log('🚀 Server running on http://localhost:3000'));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log('🚀 Server running on port ' + PORT));
