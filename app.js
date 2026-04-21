@@ -20,20 +20,67 @@ app.use(session({
 app.set('view engine', 'ejs');
 app.set('views', './views');
 
-// Database Connection
-const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
+// Database Connection Pool (Production-Grade)
+const db = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'classroom_system',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelayMs: 0,
+    connectionTimeout: 10000,
+    enableMultipleStatements: false,
+    decimalNumbers: true
 });
 
-db.connect((err) => {
+// Test database connection
+db.getConnection((err, connection) => {
     if (err) {
-        console.error('Database connection failed:', err);
+        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+            console.error('❌ DATABASE CONNECTION WAS CLOSED');
+        }
+        if (err.code === 'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR') {
+            console.error('❌ FATAL ERROR - DATABASE CONNECTION WAS DESTROYED');
+        }
+        if (err.code === 'PROTOCOL_ENQUEUE_AFTER_DESTROY') {
+            console.error('❌ CANNOT CONNECT - CONNECTION DESTROYED');
+        }
+        if (err.code === 'ECONNREFUSED') {
+            console.error('❌ ECONNREFUSED - MySQL not running or wrong credentials');
+            console.error('   Check: DB_HOST, DB_USER, DB_PASSWORD, DB_NAME');
+            console.error('   Current values: HOST=' + process.env.DB_HOST + ', USER=' + process.env.DB_USER + ', DB=' + process.env.DB_NAME);
+        }
+        if (err.code === 'ER_ACCESS_DENIED_ERROR') {
+            console.error('❌ ACCESS DENIED - Wrong username or password');
+        }
+        if (err.code === 'ER_BAD_DB_ERROR') {
+            console.error('❌ BAD_DB_ERROR - Database does not exist: ' + process.env.DB_NAME);
+        }
+        console.error('Database connection error:', err);
         return;
     }
-    console.log('✅ MySQL Connected');
+    if (connection) connection.release();
+    console.log('✅ MySQL Connected Successfully');
+    console.log('   Host:', process.env.DB_HOST);
+    console.log('   Database:', process.env.DB_NAME);
+    console.log('   Ready for queries!');
+});
+
+// Handle connection errors
+db.on('error', (err) => {
+    console.error('❌ Unexpected error on db:', err);
+    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+        // Connection was closed
+    }
+    if (err.code === 'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR') {
+        // Fatal error occurred, should take connection from pool and close it
+    }
+    if (err.code === 'PROTOCOL_ENQUEUE_AFTER_DESTROY') {
+        // Connection was destroyed, cannot use anymore.
+    }
 });
 
 // File Upload Configuration
@@ -62,6 +109,30 @@ app.use((req, res, next) => {
 });
 
 // ============ ROUTES ============
+
+// HEALTH CHECK & DATABASE DIAGNOSTIC
+app.get('/health', (req, res) => {
+    db.query("SELECT 1", (err, result) => {
+        if (err) {
+            console.error('❌ Health check failed:', err);
+            return res.status(500).json({ 
+                status: 'error', 
+                message: 'Database connection failed',
+                error: err.message,
+                dbHost: process.env.DB_HOST,
+                dbUser: process.env.DB_USER,
+                dbName: process.env.DB_NAME
+            });
+        }
+        res.status(200).json({ 
+            status: 'ok', 
+            message: 'Database connection successful',
+            dbHost: process.env.DB_HOST,
+            dbName: process.env.DB_NAME,
+            timestamp: new Date()
+        });
+    });
+});
 
 // HOME
 app.get('/', (req, res) => res.render('home'));
@@ -513,4 +584,47 @@ app.post('/submit-mcq/:testId', (req, res) => {
 
 // Start Server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('🚀 Server running on port ' + PORT));
+
+// Auto-initialize database if AUTO_INIT_DB is enabled (useful for Railway)
+const AUTO_INIT_DB = process.env.AUTO_INIT_DB === 'true';
+
+if (AUTO_INIT_DB) {
+    console.log('🔄 AUTO_INIT_DB enabled - will initialize database on startup');
+    const fs = require('fs');
+    const pathModule = require('path');
+    
+    const schemaPath = pathModule.join(__dirname, 'database.sql');
+    if (fs.existsSync(schemaPath)) {
+        setTimeout(() => {
+            const schema = fs.readFileSync(schemaPath, 'utf8');
+            const statements = schema
+                .split(';')
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+            
+            console.log(`📋 Initializing ${statements.length} database statements...`);
+            
+            statements.forEach((statement, index) => {
+                db.query(statement, (err, result) => {
+                    if (!err) {
+                        console.log(`✅ DB Statement ${index + 1}/${statements.length} complete`);
+                    } else if (err.code === 'ER_TABLE_EXISTS_ERROR' || err.code === 'ER_DUP_KEYNAME') {
+                        console.log(`⏭️  DB Statement ${index + 1}/${statements.length} - already exists (OK)`);
+                    } else {
+                        console.warn(`⚠️  DB Statement ${index + 1}: ${err.message}`);
+                    }
+                });
+            });
+        }, 2000); // Wait 2 seconds for pool to be ready
+    }
+}
+
+app.listen(PORT, () => {
+    console.log('╔═════════════════════════════════════════╗');
+    console.log('║   🚀 SmartStudy Hub Running              ║');
+    console.log('║   Port: ' + PORT);
+    console.log('║   Host: ' + (process.env.DB_HOST || 'localhost'));
+    console.log('║   Database: ' + (process.env.DB_NAME || 'classroom_system'));
+    console.log('║   Test: http://localhost:' + PORT + '/health');
+    console.log('╚═════════════════════════════════════════╝');
+});

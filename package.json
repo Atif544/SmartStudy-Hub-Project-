@@ -4,7 +4,9 @@
   "description": "Gamified Classroom Resource Sharing System",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "init-db": "node init-db.js",
+    "dev": "node app.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
