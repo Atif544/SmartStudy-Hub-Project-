@@ -22,12 +22,7 @@ app.set('view engine', 'ejs');
 app.set('views', './views');
 
 // Database Connection Pool (Production-Grade)
-const db = mysql.createPool({
-    host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
-    user: process.env.DB_USER || process.env.MYSQLUSER || 'root',
-    password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '',
-    database: process.env.DB_NAME || process.env.MYSQLDATABASE || 'classroom_system',
-    port: process.env.DB_PORT || process.env.MYSQLPORT || 3306,
+const dbOptions = {
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
@@ -36,7 +31,23 @@ const db = mysql.createPool({
     connectionTimeout: 10000,
     enableMultipleStatements: false,
     decimalNumbers: true
-});
+};
+
+let db;
+const connectionUri = process.env.MYSQL_URL || process.env.DATABASE_URL || process.env.MYSQL_PUBLIC_URL;
+
+if (connectionUri) {
+    db = mysql.createPool({ ...dbOptions, uri: connectionUri });
+} else {
+    db = mysql.createPool({
+        ...dbOptions,
+        host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
+        user: process.env.DB_USER || process.env.MYSQLUSER || 'root',
+        password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '',
+        database: process.env.DB_NAME || process.env.MYSQLDATABASE || 'classroom_system',
+        port: process.env.DB_PORT || process.env.MYSQLPORT || 3306
+    });
+}
 
 // Test database connection
 db.getConnection((err, connection) => {
