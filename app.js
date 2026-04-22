@@ -26,11 +26,9 @@ const dbOptions = {
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    enableKeepAlive: true,
-    keepAliveInitialDelayMs: 0,
-    connectionTimeout: 10000,
-    enableMultipleStatements: false,
-    decimalNumbers: true
+    ssl: {
+        rejectUnauthorized: false
+    }
 };
 
 let db;
@@ -41,11 +39,11 @@ if (connectionUri) {
 } else {
     db = mysql.createPool({
         ...dbOptions,
-        host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
-        user: process.env.DB_USER || process.env.MYSQLUSER || 'Atif',
-        password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || 'arpita',
-        database: process.env.DB_NAME || process.env.MYSQLDATABASE || 'classroom_system',
-        port: process.env.DB_PORT || process.env.MYSQLPORT || 3306
+        host: process.env.DB_HOST || 'localhost',
+        user: process.env.DB_USER || 'root',
+        password: process.env.DB_PASSWORD || '',
+        database: process.env.DB_NAME || 'classroom_system',
+        port: parseInt(process.env.DB_PORT) || 3306
     });
 }
 
@@ -162,6 +160,10 @@ app.post('/register', async (req, res) => {
     
     // Check if user exists
     db.query("SELECT * FROM users WHERE email = ?", [email], async (err, result) => {
+        if (err) {
+            console.error('Registration query error:', err);
+            return res.render('register', { error: 'Database connection failed. Please try again later.' });
+        }
         if (result.length > 0) {
             return res.render('register', { error: 'Email already registered!' });
         }
